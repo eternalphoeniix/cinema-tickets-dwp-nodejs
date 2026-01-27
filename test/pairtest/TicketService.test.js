@@ -45,8 +45,8 @@ describe("TicketService", () => {
     describe("Given an invalid accountId of", () => {
       const invalidAccountIds = [null, undefined, -1, 0, "A"];
       const ticketTypeRequests = {};
-      describe.each(invalidAccountIds)("%p", () => {
-        it("then an InvalidPurchaseException is thrown", (accountId) => {
+      describe.each(invalidAccountIds)("%p", (accountId) => {
+        it("then an InvalidPurchaseException is thrown", () => {
           expect(() =>
             ticketService.purchaseTickets(accountId, ticketTypeRequests),
           ).toThrow(InvalidPurchaseException);
@@ -62,8 +62,8 @@ describe("TicketService", () => {
         { adult: undefined, desc: "undefined" },
         {},
       ];
-      describe.each(invalidTicketTypeRequest)("%p", () => {
-        it("then an InvalidPurchaseException is thrown", (ticketTypeRequests) => {
+      describe.each(invalidTicketTypeRequest)("%p", (ticketTypeRequests) => {
+        it("then an InvalidPurchaseException is thrown", () => {
           expect(() =>
             ticketService.purchaseTickets(accountId, ticketTypeRequests),
           ).toThrow(InvalidPurchaseException);
@@ -79,20 +79,23 @@ describe("TicketService", () => {
         [26, 1, 1],
         [10, 10, 10],
       ];
-      describe.each(invalidNumberOfIndividualTickets)("of %i adults", () => {
-        it("then an InvalidPurchaseException is thrown", (numberOfTickets) => {
-          expect(() =>
-            ticketService.purchaseTickets(accountId, {
-              adults: numberOfTickets,
-            }),
-          ).toThrow(InvalidPurchaseException);
-        });
-      });
+      describe.each(invalidNumberOfIndividualTickets)(
+        "of %i adults",
+        (numberOfTickets) => {
+          it("then an InvalidPurchaseException is thrown", () => {
+            expect(() =>
+              ticketService.purchaseTickets(accountId, {
+                adults: numberOfTickets,
+              }),
+            ).toThrow(InvalidPurchaseException);
+          });
+        },
+      );
 
       describe.each(invalidNumberOfCombinedTickets)(
         "of %i adults, %i children and %i infants",
-        () => {
-          it("then an InvalidPurchaseException is thrown", (numberOfTickets) => {
+        (numberOfTickets) => {
+          it("then an InvalidPurchaseException is thrown", () => {
             expect(() =>
               ticketService.purchaseTickets(accountId, {
                 adults: numberOfTickets[0],
