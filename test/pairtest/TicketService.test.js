@@ -1,6 +1,7 @@
 import InvalidPurchaseException from "../../src/pairtest/lib/InvalidPurchaseException";
 import TicketTypeRequest from "../../src/pairtest/lib/TicketTypeRequest";
 import TicketService from "../../src/pairtest/TicketService";
+import { MAX_TICKETS } from "../../src/pairtest/TicketServiceConfig";
 
 describe("TicketService", () => {
   let ticketService = new TicketService();
@@ -87,40 +88,62 @@ describe("TicketService", () => {
 
     describe("Given an invalid number of tickets", () => {
       const accountId = 1;
-      const invalidNumberOfIndividualTickets = [26, -1];
+      const invalidMaxTickets = MAX_TICKETS + 1;
+      const ticketTypes = ["ADULT", "CHILD", "INFANT"];
       const invalidNumberOfCombinedTickets = [
         [26, 1, 1],
         [10, 10, 10],
       ];
-      describe.each(invalidNumberOfIndividualTickets)(
-        "of %i adults",
-        (noOfTickets) => {
+      const invalidMinimumTickets = [0, -1];
+      describe.each(ticketTypes)(`of ${invalidMaxTickets} %s`, (ticketType) => {
+        it("then an InvalidPurchaseException is thrown", () => {
+          expect(() =>
+            ticketService.purchaseTickets(
+              accountId,
+              new TicketTypeRequest(ticketType, invalidMaxTickets),
+            ),
+          ).toThrow(
+            new InvalidPurchaseException(
+              `${invalidMaxTickets} tickets is over the maximum limit of ${MAX_TICKETS}`,
+            ),
+          );
+        });
+      });
+
+      describe.each(invalidNumberOfCombinedTickets)(
+        "of %i adults, %i children and %i infants",
+        (adultTickets, childTickets, infantTickets) => {
           it("then an InvalidPurchaseException is thrown", () => {
-            console.log(noOfTickets);
-            console.log(accountId);
+            const total = adultTickets + childTickets + infantTickets;
             expect(() =>
               ticketService.purchaseTickets(
                 accountId,
-                new TicketTypeRequest("ADULT", noOfTickets),
+                new TicketTypeRequest("ADULT", adultTickets),
+                new TicketTypeRequest("CHILD", childTickets),
+                new TicketTypeRequest("INFANT", infantTickets),
               ),
             ).toThrow(
-              new InvalidPurchaseException(`Invalid number of tickets: `),
+              new InvalidPurchaseException(
+                `${total} tickets is over the maximum limit of ${MAX_TICKETS}`,
+              ),
             );
           });
         },
       );
-
-      describe.each(invalidNumberOfCombinedTickets)(
-        "of %i adults, %i children and %i infants",
+      describe.each(invalidMinimumTickets)(
+        "of %i adults",
         (numberOfTickets) => {
           it("then an InvalidPurchaseException is thrown", () => {
             expect(() =>
-              ticketService.purchaseTickets(accountId, {
-                adults: numberOfTickets[0],
-                children: numberOfTickets[1],
-                infants: numberOfTickets[2],
-              }),
-            ).toThrow(InvalidPurchaseException);
+              ticketService.purchaseTickets(
+                accountId,
+                new TicketTypeRequest("ADULT", numberOfTickets),
+              ),
+            ).toThrow(
+              new InvalidPurchaseException(
+                `${numberOfTickets} is below the minimum ticket request of 1`,
+              ),
+            );
           });
         },
       );
