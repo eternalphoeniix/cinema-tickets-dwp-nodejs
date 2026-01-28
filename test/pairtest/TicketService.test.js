@@ -1,4 +1,5 @@
 import InvalidPurchaseException from "../../src/pairtest/lib/InvalidPurchaseException";
+import TicketTypeRequest from "../../src/pairtest/lib/TicketTypeRequest";
 import TicketService from "../../src/pairtest/TicketService";
 
 describe("TicketService", () => {
@@ -10,33 +11,40 @@ describe("TicketService", () => {
     describe("Given a valid input of", () => {
       const cases = [
         {
+          accountId: 2,
+          ticketTypeRequests: [new TicketTypeRequest("ADULT", 3)],
+          desc: "3 adults",
+          price: "£120",
+          seats: 3,
+        },
+        {
           accountId: 1,
-          ticketTypeRequests: [{ adults: 3, children: 2 }],
+          ticketTypeRequests: [
+            new TicketTypeRequest("ADULT", 3),
+            new TicketTypeRequest("CHILD", 2),
+          ],
           desc: "3 adults, 2 children",
           price: "£120",
           seats: 5,
         },
         {
           accountId: 100,
-          ticketTypeRequests: [{ adults: 3 }, { infants: 5 }],
+          ticketTypeRequests: [
+            new TicketTypeRequest("ADULT", 3),
+            new TicketTypeRequest("INFANT", 3),
+          ],
           desc: "3 adults, 5 infants",
           price: "£120",
           seats: 8,
         },
-        {
-          accountId: 2,
-          ticketTypeRequests: [{ adults: 3 }],
-          desc: "3 adults",
-          price: "£120",
-          seats: 3,
-        },
       ];
       describe.each(cases)(
-        "accountId=$accountId with tickets=$desc",
+        "accountId = $accountId with tickets = $desc",
         ({ accountId, ticketTypeRequests, seats, price }) => {
           it(`then ${price} is paid and ${seats} seats are allocated`, () => {
+            console.log(...ticketTypeRequests);
             expect(() =>
-              ticketService.purchaseTickets(accountId, ticketTypeRequests),
+              ticketService.purchaseTickets(accountId, ...ticketTypeRequests),
             ).not.toThrow(InvalidPurchaseException);
           });
         },
@@ -49,28 +57,33 @@ describe("TicketService", () => {
         it("then an InvalidPurchaseException is thrown", () => {
           expect(() =>
             ticketService.purchaseTickets(accountId, ticketTypeRequests),
-          ).toThrow(InvalidPurchaseException);
+          ).toThrow(
+            new InvalidPurchaseException(`Invalid Account ID: ${accountId}`),
+          );
         });
       });
     });
 
-    //Do i need this? test it in the class itself. maybe check for nulls still.
     describe("Given an invalid ticketTypeRequest of", () => {
       const accountId = 1;
       const invalidTicketTypeRequest = [
-        { adult: null, desc: "null" },
-        { adult: undefined, desc: "undefined" },
+        undefined,
+        null,
+        { type: "ADULT", noOfTickets: 5 },
         {},
       ];
-      describe.each(invalidTicketTypeRequest)("%p", (ticketTypeRequests) => {
+      describe.each(invalidTicketTypeRequest)("%p", (ticketTypeRequest) => {
         it("then an InvalidPurchaseException is thrown", () => {
           expect(() =>
-            ticketService.purchaseTickets(accountId, ticketTypeRequests),
-          ).toThrow(InvalidPurchaseException);
+            ticketService.purchaseTickets(accountId, ticketTypeRequest),
+          ).toThrow(
+            new InvalidPurchaseException(
+              `Invalid Ticket Type Request: ${JSON.stringify(ticketTypeRequest)}`,
+            ),
+          );
         });
       });
     });
-    ////
 
     describe("Given an invalid number of tickets", () => {
       const accountId = 1;
@@ -81,13 +94,18 @@ describe("TicketService", () => {
       ];
       describe.each(invalidNumberOfIndividualTickets)(
         "of %i adults",
-        (numberOfTickets) => {
+        (noOfTickets) => {
           it("then an InvalidPurchaseException is thrown", () => {
+            console.log(noOfTickets);
+            console.log(accountId);
             expect(() =>
-              ticketService.purchaseTickets(accountId, {
-                adults: numberOfTickets,
-              }),
-            ).toThrow(InvalidPurchaseException);
+              ticketService.purchaseTickets(
+                accountId,
+                new TicketTypeRequest("ADULT", noOfTickets),
+              ),
+            ).toThrow(
+              new InvalidPurchaseException(`Invalid number of tickets: `),
+            );
           });
         },
       );
