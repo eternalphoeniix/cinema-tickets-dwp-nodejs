@@ -8,7 +8,8 @@
   "type": "module",
   "scripts": {
     "test": "jest",
-    "test:unit:verbose": "jest test/pairtest --verbose"
+    "test:unit:verbose": "jest test/pairtest --verbose",
+    "test:integration": "jest test/thirdparty"
   },
   "devDependencies": {
     "@babel/core": "^7.28.6",
