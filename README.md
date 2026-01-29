@@ -4,6 +4,12 @@
 
 This code is for the DWP cinema tickets coding test.
 
+## Assumptions
+
+- 1 infant per adult lap.
+- Only 1 adult needed for any number of children.
+-
+
 ## Running the application
 
 You can run the application by calling the Ticket service such as the code below.
@@ -34,6 +40,7 @@ Testing is done through the package.json
 - commit standards (feat/test/config)
 - improved jsDocs
 - modular. separate validations from business logic
+- different currencies
 
 # DWP Instructions:
 

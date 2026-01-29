@@ -11,7 +11,6 @@ describe("TicketService", () => {
     ticketService = new TicketService();
   });
   describe("purchaseTickets", () => {
-    //happy path
     describe("Given a valid input of", () => {
       let spyMakePayment;
       let spyReserveSeat;
@@ -83,7 +82,6 @@ describe("TicketService", () => {
       );
     });
 
-    //invalid cases
     describe("Given an invalid accountId of", () => {
       const invalidAccountIds = [null, undefined, -1, 0, "A"];
       const ticketTypeRequests = {};
@@ -183,7 +181,6 @@ describe("TicketService", () => {
     });
 
     describe("Given infants should not pay or be allocated seats", () => {
-      // infinite infants on adult lap? assume 1 per adult
       const dataSet = [[1, 1, 10, 1]];
       it.each(dataSet)(
         "then %i adults and %i infants should pay %i for %i seats",
@@ -218,6 +215,3 @@ describe("TicketService", () => {
     });
   });
 });
-// assumption that tickets can be oprdered like 1 adult, 2 adult 1 child
-//1 adult, 1 child. etc.
-// assumption 1 adult per child + infant vs 1 adult for many.
