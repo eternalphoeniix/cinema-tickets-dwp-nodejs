@@ -2,6 +2,8 @@ import InvalidPurchaseException from "../../src/pairtest/lib/InvalidPurchaseExce
 import TicketTypeRequest from "../../src/pairtest/lib/TicketTypeRequest";
 import TicketService from "../../src/pairtest/TicketService";
 import { MAX_TICKETS } from "../../src/pairtest/TicketServiceConfig";
+import TicketPaymentService from "../../src/thirdparty/paymentgateway/TicketPaymentService";
+import SeatReservationService from "../../src/thirdparty/seatbooking/SeatReservationService";
 
 describe("TicketService", () => {
   let ticketService = new TicketService();
@@ -9,13 +11,28 @@ describe("TicketService", () => {
     ticketService = new TicketService();
   });
   describe("purchaseTickets", () => {
+    //happy path
     describe("Given a valid input of", () => {
+      let spyMakePayment;
+      let spyReserveSeat;
+      beforeEach(() => {
+        spyMakePayment = jest
+          .spyOn(TicketPaymentService.prototype, "makePayment")
+          .mockImplementation(() => {});
+        spyReserveSeat = jest
+          .spyOn(SeatReservationService.prototype, "reserveSeat")
+          .mockImplementation(() => {});
+      });
+      afterEach(() => {
+        spyMakePayment.mockRestore();
+        spyReserveSeat.mockRestore();
+      });
       const cases = [
         {
           accountId: 2,
           ticketTypeRequests: [new TicketTypeRequest("ADULT", 3)],
           desc: "3 adults",
-          price: "£120",
+          price: 75,
           seats: 3,
         },
         {
@@ -25,7 +42,7 @@ describe("TicketService", () => {
             new TicketTypeRequest("CHILD", 2),
           ],
           desc: "3 adults, 2 children",
-          price: "£120",
+          price: 105,
           seats: 5,
         },
         {
@@ -34,23 +51,28 @@ describe("TicketService", () => {
             new TicketTypeRequest("ADULT", 3),
             new TicketTypeRequest("INFANT", 3),
           ],
-          desc: "3 adults, 5 infants",
-          price: "£120",
-          seats: 8,
+          desc: "3 adults, 3 infants",
+          price: 75,
+          seats: 3,
         },
       ];
       describe.each(cases)(
-        "accountId = $accountId with tickets = $desc",
+        "accountId = $accountId with ticket requests of $desc",
         ({ accountId, ticketTypeRequests, seats, price }) => {
           it(`then ${price} is paid and ${seats} seats are allocated`, () => {
-            console.log(...ticketTypeRequests);
             expect(() =>
               ticketService.purchaseTickets(accountId, ...ticketTypeRequests),
             ).not.toThrow(InvalidPurchaseException);
+            expect(spyMakePayment).toHaveBeenCalledWith(accountId, price);
+            expect(spyMakePayment).toHaveBeenCalledTimes(1);
+            expect(spyReserveSeat).toHaveBeenCalledWith(accountId, seats);
+            expect(spyReserveSeat).toHaveBeenCalledTimes(1);
           });
         },
       );
     });
+
+    //invalid cases
     describe("Given an invalid accountId of", () => {
       const invalidAccountIds = [null, undefined, -1, 0, "A"];
       const ticketTypeRequests = {};
