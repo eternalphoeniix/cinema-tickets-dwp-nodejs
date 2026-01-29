@@ -55,6 +55,17 @@ describe("TicketService", () => {
           price: 75,
           seats: 3,
         },
+        {
+          accountId: 123456,
+          ticketTypeRequests: [
+            new TicketTypeRequest("ADULT", 1),
+            new TicketTypeRequest("CHILD", 1),
+            new TicketTypeRequest("INFANT", 1),
+          ],
+          desc: "1 adult, 1 child, 1 infant",
+          price: 40,
+          seats: 2,
+        },
       ];
       describe.each(cases)(
         "accountId = $accountId with ticket requests of $desc",
